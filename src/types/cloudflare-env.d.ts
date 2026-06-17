@@ -2,15 +2,13 @@ declare module 'cloudflare:workers' {
 	export interface Env {
 		SITE_URL: string;
 		ENVIRONMENT: 'production' | 'preview' | 'development' | string;
-		CMS_URL?: string;
-		CMS_TOKEN?: string;
 		GITHUB_TOKEN?: string;
 		PUBLIC_AIRTABLE_API_KEY?: string;
 		REVALIDATE_SECRET?: string;
 		SLACK_JOIN_LINK?: string;
 		ZOOM_TUESDAYS?: string;
 		ZOOM_THURSDAYS?: string;
-		// D1 binding for the 4 public forms. Schema in /migrations.
+		// D1 binding for the 4 public forms + events. Schema in /migrations.
 		DB: D1Database;
 		// Cloudflare send_email binding. Undefined in local wrangler dev
 		// (miniflare); the action falls back to console.log there.
@@ -39,7 +37,11 @@ interface D1Database {
 interface D1PreparedStatement {
 	bind(...values: (string | number | null)[]): D1PreparedStatement;
 	run(): Promise<{
-		meta: { last_row_id?: number | bigint };
+		meta: { last_row_id?: number | bigint; changes?: number };
+	}>;
+	all<T = Record<string, unknown>>(): Promise<{
+		results?: T[];
+		success?: boolean;
 	}>;
 }
 

@@ -6,15 +6,22 @@
 	"compatibility_date": "2026-02-12",
 	"compatibility_flags": ["nodejs_compat"],
 
-	// Worker fetch entry. Required for `vinext dev` (and deploy) to route
-	// requests through the Cloudflare worker — without it every request falls
-	// through to a 404. `vinext/server/app-router-entry` is vinext's built-in
-	// App Router handler (no custom worker/index.ts needed; the app uses
-	// @unpic/react rather than the /_next/image optimizer).
-	"main": "vinext/server/app-router-entry",
+	// Worker entry. Custom wrapper that delegates fetch() to vinext's
+	// built-in app-router-entry and adds scheduled() so the daily Cron
+	// Trigger can run materializeRecurringEvents (vinext's own entry only
+	// exports fetch).
+	"main": "src/worker.ts",
 
-	// Production env vars (non-secret). Secrets (CMS_TOKEN, GITHUB_TOKEN,
-	// PUBLIC_AIRTABLE_API_KEY, CMS_URL, REVALIDATE_SECRET, SLACK_JOIN_LINK,
+	// Daily 06:00 UTC: expand recurring event defs (src/data/events/recurring.ts)
+	// into discrete D1 rows on a 60-day horizon. Idempotent via the
+	// (source_id, start_utc) unique index — re-runs never duplicate, manual
+	// edits to a generated row survive (ON CONFLICT DO NOTHING).
+	"triggers": {
+		"crons": ["0 6 * * *"]
+	},
+
+	// Production env vars (non-secret). Secrets (GITHUB_TOKEN,
+	// PUBLIC_AIRTABLE_API_KEY, REVALIDATE_SECRET, SLACK_JOIN_LINK,
 	// ZOOM_TUESDAYS, ZOOM_THURSDAYS, LUNCH_AND_LEARN_NOTIFY_LIST,
 	// COC_NOTIFY_LIST, COFFEE_TABLE_NOTIFY_LIST, VOLUNTEER_NOTIFY_LIST) are
 	// configured via `wrangler secret put` (or the dashboard) — never committed.
@@ -25,7 +32,8 @@
 	},
 
 	// D1 binding for the 4 public forms (lunch-and-learn, CoC, coffee-table,
-	// volunteer). Schema lives in /migrations and is applied via:
+	// volunteer) AND the events table (replaces the old Solspace/CraftCMS
+	// read path). Schema lives in /migrations and is applied via:
 	//   wrangler d1 migrations apply virtualcoffee-forms --local   # dev
 	//   wrangler d1 migrations apply virtualcoffee-forms --remote  # prod
 	// Operator action before first deploy: create the prod + preview DBs and

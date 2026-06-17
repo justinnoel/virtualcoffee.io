@@ -2,45 +2,24 @@
 
 import { env } from 'cloudflare:workers';
 import { unstable_cache } from 'next/cache';
-import { GraphQLClient, gql } from 'graphql-request';
 import { DateTime } from 'luxon';
 import { sanitizeHtml } from '@/util/sanitizeCmsData';
 import { ics, google, outlook } from 'calendar-link';
 
-const calendarsQuery = gql`
-	query getCalendars {
-		solspace_calendar {
-			calendars {
-				handle
-			}
-		}
-	}
-`;
-
-/**
- * Defining the interface for the SolspaceCalendar object.
- * @link https://docs.solspace.com/craft/calendar/v3/developer/graphql.html#calendar-interface
- */
-interface SolspaceCalendar {
+interface EventRow {
 	id: number;
-	uid: string;
-	name: string;
-	handle: string;
-	description: string;
-	color: string;
-	lighterColor: string;
-	darkerColor: string;
-	icsHash: string;
-	allowRepeatingEvents: boolean;
+	title: string;
+	description: string | null;
+	start_utc: string;
+	end_utc: string;
 }
-interface SolspaceEventResponse {
-	id: number | string;
+
+export interface EventItem {
+	id: number;
 	title: string;
 	startDateLocalized: string;
 	endDateLocalized: string;
 	eventCalendarDescription: string;
-}
-export interface EventItem extends SolspaceEventResponse {
 	eventCalendarLinks: {
 		google: string;
 		outlook: string;
@@ -48,34 +27,6 @@ export interface EventItem extends SolspaceEventResponse {
 	};
 }
 export type EventsResponse = Array<EventItem>;
-
-function createEventsQuery(
-	calendars: Pick<SolspaceCalendar, 'handle'>[],
-	rangeStart: string,
-	rangeEnd: string,
-	limit: number,
-) {
-	return gql`
-	query getEvents {
-		solspace_calendar {
-			events(rangeStart: "${rangeStart}", rangeEnd: "${rangeEnd}", limit: ${limit}) {
-				id
-				title
-				startDateLocalized
-				endDateLocalized
-				${calendars.map(
-					({ handle }) => `
-				... on ${handle}_Event {
-					eventCalendarDescription
-					id
-				}
-				`,
-				)}
-			}
-		}
-	}
-`;
-}
 
 export const getEvents = unstable_cache(
 	async ({ limit }: { limit: number }): Promise<EventsResponse> => {
@@ -86,55 +37,50 @@ export const getEvents = unstable_cache(
 			.plus({ days: 30 })
 			.toISO();
 
-		if (!(env.CMS_URL && env.CMS_TOKEN)) {
+		if (!env.DB) {
 			const fakeData = await import('./mocks/events');
 			return fakeData.createEventsData({ limit, rangeEnd, rangeStart });
 		}
 
-		const graphQLClient = new GraphQLClient(`${env.CMS_URL}/api`, {
-			headers: {
-				Authorization: `bearer ${env.CMS_TOKEN}`,
-			},
-		});
-
 		try {
-			const {
-				solspace_calendar: { calendars },
-			} = await graphQLClient.request<{
-				solspace_calendar: { calendars: Pick<SolspaceCalendar, 'handle'>[] };
-			}>(calendarsQuery);
-
-			const {
-				solspace_calendar: { events },
-			} = await graphQLClient.request<{
-				solspace_calendar: { events: EventsResponse };
-			}>(createEventsQuery(calendars, rangeStart, rangeEnd, limit));
+			const { results } = await env.DB.prepare(
+				`SELECT id, title, description, start_utc, end_utc
+				 FROM events
+				 WHERE start_utc >= ?1 AND start_utc <= ?2 AND cancelled = 0
+				 ORDER BY start_utc ASC
+				 LIMIT ?3`,
+			)
+				.bind(rangeStart, rangeEnd, limit)
+				.all<EventRow>();
 
 			return await Promise.all(
-				events.map(async (event) => {
+				(results ?? []).map(async (row) => {
 					const sanitizedDescription = await sanitizeHtml(
-						event.eventCalendarDescription,
+						row.description ?? '',
 					);
 					const calendarLinkGoogle = google({
-						title: event.title,
-						start: event.startDateLocalized,
-						end: event.endDateLocalized,
+						title: row.title,
+						start: row.start_utc,
+						end: row.end_utc,
 						description: sanitizedDescription,
 					});
 					const calendarLinkOutlook = outlook({
-						title: event.title,
-						start: event.startDateLocalized,
-						end: event.endDateLocalized,
+						title: row.title,
+						start: row.start_utc,
+						end: row.end_utc,
 						description: sanitizedDescription,
 					});
 					const calendarLinkIcs = ics({
-						title: event.title,
-						start: event.startDateLocalized,
-						end: event.endDateLocalized,
+						title: row.title,
+						start: row.start_utc,
+						end: row.end_utc,
 						description: sanitizedDescription,
 					});
 					return {
-						...event,
+						id: row.id,
+						title: row.title,
+						startDateLocalized: row.start_utc,
+						endDateLocalized: row.end_utc,
 						eventCalendarDescription: sanitizedDescription,
 						eventCalendarLinks: {
 							google: calendarLinkGoogle,

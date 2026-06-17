@@ -17,7 +17,7 @@ export function createEventsData({
 		count: limit,
 	});
 
-	return dates.map((date) => {
+	return dates.map((date, index) => {
 		const startDate = DateTime.fromJSDate(date);
 		const calendarLinkGoogle = google({
 			title: faker.lorem.sentence(7),
@@ -39,7 +39,7 @@ export function createEventsData({
 		});
 
 		return {
-			id: faker.string.uuid(),
+			id: index + 1,
 			title: faker.lorem.sentence(7),
 			startDateLocalized: startDate.toUTC().toString(),
 			endDateLocalized: startDate.toUTC().plus({ hours: 1 }).toString(),

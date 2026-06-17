@@ -11,6 +11,7 @@
     "format": "npx prettier --write --ignore-unknown --list-different \"**/*\"",
     "lint": "eslint",
     "build-member-files": "tsx scripts/loadMemberFiles.js",
+    "seed:events": "tsx scripts/seedEvents.ts",
     "build": "vinext build",
     "start": "next start",
     "prebuild": "pnpm build-member-files",

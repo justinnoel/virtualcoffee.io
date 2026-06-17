@@ -95,6 +95,26 @@ Once you have `node` and `pnpm` installed, you're ready to install the local dep
 pnpm install
 ```
 
+### 4. Set up the local events database
+
+The events shown on the homepage and `/events` are stored in a local [Cloudflare D1](https://developers.cloudflare.com/d1/) database (binding `DB`, database `virtualcoffee-forms`). Unlike most other data on the site, events do **not** fall back to mock data — the pages read D1 directly — so you need to create the table and seed it once.
+
+Apply the database migrations to your local D1 (this creates the `events` table, along with the forms tables):
+
+```shell
+pnpm wrangler d1 migrations apply virtualcoffee-forms --local
+```
+
+Then seed the recurring events so the homepage and `/events` aren't empty:
+
+```shell
+pnpm seed:events
+```
+
+`pnpm seed:events` expands the recurring schedule defined in `src/data/events/recurring.ts` into upcoming dated occurrences — the same logic the production daily cron uses. It's safe to re-run; it never creates duplicates.
+
+> Seed before your first `pnpm dev`. If you started the dev server first and see stale or empty events, the result is cached locally for up to 12 hours — clear just the cache with `rm -rf .wrangler/state/v3/kv` (this leaves your seeded D1 data intact), then reload.
+
 At this point you're ready to roll! Run the following command to get rolling!
 
 ```shell
@@ -151,7 +171,9 @@ Runs [ESLint](https://eslint.org/) on all of our files, so you can check for err
 
 A lot of the data loaded on the site is from APIs that require private keys or tokens. Unfortunately we can't publish these or distribute them too widely.
 
-All of the data points have mock data that is used if the required API key isn't present, so contributors should be able to make UX-related changes without needing them.
+Most of the data points have mock data that is used if the required API key isn't present, so contributors should be able to make UX-related changes without needing them.
+
+The events page is the exception: it reads from a local [Cloudflare D1](https://developers.cloudflare.com/d1/) database rather than an API and does **not** use mock data. See [Set up the local events database](#4-set-up-the-local-events-database) for the one-time migrate-and-seed steps.
 
 If you'd like to work on a feature that requires an API key, please reach out to a maintainer and we can probably get that going.
 

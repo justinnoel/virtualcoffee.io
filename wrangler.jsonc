@@ -2,7 +2,7 @@
 	// vinext / Cloudflare Workers configuration.
 	// See: https://developers.cloudflare.com/workers/wrangler/configuration/
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "virtualcoffeeio",
+	"name": "virtualcoffee-io",
 	"compatibility_date": "2026-02-12",
 	"compatibility_flags": ["nodejs_compat"],
 

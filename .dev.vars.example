@@ -15,11 +15,22 @@ CMS_TOKEN=""
 # Empty -> sponsors uses mocks (non-production), members uses mocks always.
 GITHUB_TOKEN=""
 
-# Airtable keys.
-# FORMS_AIRTABLE_API_KEY: server-action form submissions (CoC, volunteer, etc.)
-# PUBLIC_AIRTABLE_API_KEY: monthly-challenge dashboards
-FORMS_AIRTABLE_API_KEY=""
+# Airtable key.
+# PUBLIC_AIRTABLE_API_KEY: monthly-challenge dashboards (still on Airtable;
+# removed in a follow-up). The 4 public forms are now on D1 + send_email.
 PUBLIC_AIRTABLE_API_KEY=""
+
+# Per-form notification recipient lists (comma-separated). Used by
+# src/util/forms/action.ts to notify the team after a D1 insert. Every
+# recipient must be a verified address in the Cloudflare Email Routing
+# dashboard, or the send silently drops for that address.
+# `wrangler dev` lacks the send_email binding entirely — the action falls back
+# to a console.log of the would-be notification, so leaving these blank in
+# .dev.vars is fine for local work.
+LUNCH_AND_LEARN_NOTIFY_LIST=""
+COC_NOTIFY_LIST=""
+COFFEE_TABLE_NOTIFY_LIST=""
+VOLUNTEER_NOTIFY_LIST=""
 
 # Shared secret required by /_cache (on-demand revalidation).
 # Send as `Authorization: Bearer <secret>` or `?secret=<secret>`.

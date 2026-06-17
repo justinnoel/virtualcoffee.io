@@ -8,7 +8,7 @@ const initialState: FormState = {
 	is_error: false,
 };
 
-export function useAirtableForm(action: Action) {
+export function useFormAction(action: Action) {
 	const [state, formAction] = useActionState<FormState, FormData>(
 		action,
 		initialState,

@@ -1,16 +1,18 @@
 'use client';
 
 import { Submit, CodeOfConduct } from '@/components/forms';
-import { createLunchAndLearnSubmission } from '@/util/airtable/action';
-import { useAirtableForm } from '@/util/airtable/useAirtableForm';
+import { createLunchAndLearnSubmission } from '@/util/forms/action';
+import { useFormAction } from '@/util/forms/useFormAction';
+import { Honeypot } from '@/util/forms/Honeypot';
 
 export function Form() {
-	const { formAction, errorContent } = useAirtableForm(
+	const { formAction, errorContent } = useFormAction(
 		createLunchAndLearnSubmission,
 	);
 
 	return (
 		<form action={formAction}>
+			<Honeypot />
 			<fieldset>
 				<legend>Your Information:</legend>
 				<p className="text-muted">

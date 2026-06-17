@@ -1,15 +1,16 @@
 'use client';
 
 import { Submit, CodeOfConduct } from '@/components/forms';
-import { createCoffeeTableGroup } from '@/util/airtable/action';
-import { useAirtableForm } from '@/util/airtable/useAirtableForm';
+import { createCoffeeTableGroup } from '@/util/forms/action';
+import { useFormAction } from '@/util/forms/useFormAction';
+import { Honeypot } from '@/util/forms/Honeypot';
 
 export function Form() {
-	const { formAction, errorContent } = useAirtableForm(createCoffeeTableGroup);
+	const { formAction, errorContent } = useFormAction(createCoffeeTableGroup);
 
 	return (
 		<form action={formAction}>
-			<input type="hidden" name="form-name" value="start-coffee-table-group" />
+			<Honeypot />
 			<fieldset>
 				<legend>Your Information:</legend>
 				<p className="text-muted">

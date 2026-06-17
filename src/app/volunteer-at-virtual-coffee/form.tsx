@@ -1,8 +1,9 @@
 'use client';
 
 import { Submit, CodeOfConduct } from '@/components/forms';
-import { createVolunteer } from '@/util/airtable/action';
-import { useAirtableForm } from '@/util/airtable/useAirtableForm';
+import { createVolunteer } from '@/util/forms/action';
+import { useFormAction } from '@/util/forms/useFormAction';
+import { Honeypot } from '@/util/forms/Honeypot';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -23,10 +24,11 @@ function Position() {
 }
 
 export function Form() {
-	const { formAction, errorContent } = useAirtableForm(createVolunteer);
+	const { formAction, errorContent } = useFormAction(createVolunteer);
 
 	return (
 		<form action={formAction}>
+			<Honeypot />
 			<fieldset>
 				<legend>Your Information:</legend>
 				<p className="text-muted">

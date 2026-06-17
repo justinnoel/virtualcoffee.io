@@ -1,17 +1,18 @@
 'use client';
 
 import { Submit, CodeOfConduct } from '@/components/forms';
-import { createCoCViolation } from '@/util/airtable/action';
-import { useAirtableForm } from '@/util/airtable/useAirtableForm';
+import { createCoCViolation } from '@/util/forms/action';
+import { useFormAction } from '@/util/forms/useFormAction';
+import { Honeypot } from '@/util/forms/Honeypot';
 
 export function Form() {
-	const { formAction, errorContent } = useAirtableForm(createCoCViolation);
+	const { formAction, errorContent } = useFormAction(createCoCViolation);
 	return (
 		<form
 			action={formAction}
 			// encType="multipart/form-data"
 		>
-			<input type="hidden" name="form-name" value="coc-violation" />
+			<Honeypot />
 			<fieldset>
 				<div className="form-group">
 					<label htmlFor="formName">Your Name</label>

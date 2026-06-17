@@ -9,8 +9,11 @@ import { Google } from '@/svg/calendar/Google';
 import { Outlook } from '@/svg/calendar/Outlook';
 import { Ics } from '@/svg/calendar/Ics';
 
-// ISR: Revalidate every 12 hours
-export const revalidate = 43200;
+// Render per request (SSR). This page reads events from D1 (and sponsors from
+// GitHub) via runtime bindings/secrets that are absent in the build container,
+// so prerendering at build time would bake empty data. getEvents/getSponsors
+// still cache their data internally via unstable_cache.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
 	return await createMetaData({

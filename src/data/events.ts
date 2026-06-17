@@ -37,11 +37,6 @@ export const getEvents = unstable_cache(
 			.plus({ days: 30 })
 			.toISO();
 
-		if (!env.DB) {
-			const fakeData = await import('./mocks/events');
-			return fakeData.createEventsData({ limit, rangeEnd, rangeStart });
-		}
-
 		try {
 			const { results } = await env.DB.prepare(
 				`SELECT id, title, description, start_utc, end_utc

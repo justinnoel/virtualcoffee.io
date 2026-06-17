@@ -37,7 +37,6 @@
 		{
 			"binding": "VINEXT_KV_CACHE",
 			"id": "REPLACE_WITH_PROD_KV_NAMESPACE_ID",
-			"preview_id": "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
 		}
 	],
 
@@ -52,7 +51,7 @@
 			"kv_namespaces": [
 				{
 					"binding": "VINEXT_KV_CACHE",
-					"id": "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
+					"id": "f006ace5ddce4657be76fb5e877a5b5c"
 				}
 			]
 		}
